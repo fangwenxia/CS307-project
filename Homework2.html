@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+
+<!--CS307 Creative Scene: Dance Performance 
+    Kyra Du and Fangwen Xia
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Dance Performance</title>
+<style>
+      canvas {
+          display: block;
+          margin: 10px auto;
+          width: 80%;
+          height: 600px;
+      }
+    </style>
+<script src="https://cs.wellesley.edu/~cs307/threejs/libs/three-r95.all.js">
+"https://cs.wellesley.edu/~cs307/threejs/libs/three-r80.min.js"
+</script>
+<script src="https://cs.wellesley.edu/~cs307/threejs/libs/tw-sp21.js">
+"https://cs.wellesley.edu/~cs307/threejs/libs/tw-fa18.js"
+</script>
+<script src="https://cs.wellesley.edu/~cs307/threejs/libs/OrbitControls-r95.js">
+"https://cs.wellesley.edu/~cs307/threejs/libs/OrbitControls-r80.js"
+</script>
+
+<h1>Dance Performance</h1>
+<h2>Apr 16, 2022</h2>
+<h3>Kyra Du and Fangwen Xia: Creative Scene</h3>
+
+</head>
+<body>
+
+<script id="clowncode">
+// parameters that specify the geometrical structure of the clown
+var params = {
+    headRadius:2,
+    eyeRadius:0.3,
+    eyeAngleX:-Math.PI/6,
+    eyeAngleY:+Math.PI/6,
+    noseRadius:0.2,
+    mouthRadius:0.8,
+    mouthRotationZ:-Math.PI/2,
+    mouthRotationX:Math.PI/12,
+    earRadius:0.6,
+    earScale:0.7,
+    hatRadius:2,
+    hatHeight:5,
+    bodyRadius:7,
+    bodyScaleY:1.2,
+    shoulderRadius:1,
+    shoulderWidth:3,
+    shoulderHeight:3.7,
+    handRadius:1,
+    limbRadius:0.4,
+    limbHeight:6,
+    limbRotation: Math.PI/6,
+    dotRadius:0.1,
+    hipWidth:2.5,
+    legRadius:0.3,
+    legHeight:8
+};
+
+// colors and materials for the teddy bear
+
+var headMaterial = new THREE.MeshPhongMaterial( {color:0xb4ede8 ,
+                              specular: THREE.ColorKeywords.gray,
+                              shininess: 10,
+                              flatShading: THREE.FlatShading
+                             } );
+var blackMaterial = new THREE.MeshPhongMaterial( {color:0x000000 ,
+                              specular: THREE.ColorKeywords.gray,
+                              shininess: 10,
+                              flatShading: THREE.FlatShading
+                             } );
+var bodyMaterial = new THREE.MeshPhongMaterial( {color:0x3495eb ,
+                              specular: THREE.ColorKeywords.gray,
+                              shininess: 10,
+                              flatShading: THREE.FlatShading,
+                              side:THREE.DoubleSide
+                             } );
+var pinkMaterial = new THREE.MeshPhongMaterial( {color:0xbf7594 ,
+                              specular: THREE.ColorKeywords.gray,
+                              shininess: 10,
+                              flatShading: THREE.FlatShading,
+                              side:THREE.DoubleSide
+                             } );
+var yellowMaterial = new THREE.MeshPhongMaterial( {color:0xf5f382 ,
+                              specular: THREE.ColorKeywords.gray,
+                              shininess: 10,
+                              flatShading: THREE.FlatShading,
+                              side:THREE.DoubleSide
+                             } );
+
+function createEye(params){
+    var radius=params.eyeRadius;
+    var eyeGeometry=new THREE.SphereGeometry(radius,10,10);
+    var eyeMesh = new THREE.Mesh(eyeGeometry, blackMaterial);
+    return eyeMesh;
+}
+
+function addEye(head,params,side){
+    var eyeframe = new THREE.Object3D();
+    var eye = createEye(params);
+    var radius = params.headRadius;
+    eye.position.z = radius;  
+    var angleX = params.eyeAngleX;
+    var angleY = params.eyeAngleY;
+    eyeframe.rotation.x = angleX;
+    eyeframe.rotation.y = side * angleY; 
+    eyeframe.add(eye);
+    head.add(eyeframe);
+    return head;
+}
+
+function createNose(params) {
+    // create and return a Mesh for the nose
+    var radius = params.noseRadius;
+    var noseGeometry = new THREE.SphereGeometry(radius,10,10);
+    var noseMesh = new THREE.Mesh(noseGeometry, blackMaterial);
+    return noseMesh;
+}
+
+function addNose(head,params) {
+    /* adds a nose to the head. It's placed by creating a composite object
+     * centered in the middle of the head, positioning the nose at the
+     * head radius on +Z, then rotating around the X axis by a little */
+    var noseframe = new THREE.Object3D();
+    var nose = createNose(params);
+    var radius = params.headRadius;
+    nose.position.z = radius;   // within the noseframe
+    noseframe.add(nose);
+    head.add(noseframe);
+    return head;
+}
+
+function createMouth(params){
+    var radius = params.mouthRadius;
+    var mouthGeometry=new THREE.TorusGeometry(radius,0.1,16,100,1.3);
+    var mouthMesh=new THREE.Mesh(mouthGeometry,pinkMaterial);
+    return mouthMesh;
+}
+
+function addMouth(head,params){
+    var mouthframe = new THREE.Object3D();
+    var mouth = createMouth(params);
+    var radius = params.headRadius;
+    mouth.position.z = radius;//mouth is not directly on the face
+    mouthframe.add(mouth);
+    var angleZ=params.mouthRotationZ;
+    var angleX=params.mouthRotationX;
+    mouthframe.rotation.z=angleZ;
+    mouthframe.rotation.x=angleX;
+    head.add(mouthframe);
+    return head
+}
+
+function createHair(params){
+    var radius = params.headRadius;
+    var hairGeometry = new THREE.SphereGeometry(radius,32,16,0,2*Math.PI, 1.57, Math.PI);
+    var hairMesh = new THREE.Mesh(hairGeometry, blackMaterial);
+    return hairMesh;
+}
+
+function addHair(head,params){
+    var hairframe=new THREE.Object3D();
+    var hair = createHair(params);
+    hair.rotation.x=Math.PI*3/4;
+    hairframe.add(hair);
+    head.add(hairframe);
+    return head
+}
+
+function createHead(params) {
+    // create and return a Mesh for the head
+    var head = new THREE.Object3D();
+
+    var radius = params.headRadius;
+    var headGeometry = new THREE.SphereGeometry(radius,10,10);
+    var headMesh = new THREE.Mesh(headGeometry, headMaterial);
+    head.add(headMesh);
+
+    //gradually adds other objects here  
+    addEye(head,params,1);
+    addEye(head,params,-1);
+    addNose(head,params);
+    addMouth(head,params);
+    addHair(head,params);
+    return head;
+}
+
+function createLimb(params){
+    var radius = params.limbRadius;
+    var height = params.limbHeight;
+    var limbGeometry = new THREE.CylinderGeometry(radius,radius,height,32);
+    var limbMesh=new THREE.Mesh(limbGeometry,blackMaterial);
+    return limbMesh;
+}
+
+function addLimb(shoulder,params,side){
+    var limbframe = new THREE.Object3D();
+    var limb = createLimb(params);
+    var length=params.limbHeight;
+    var angle = params.limbRotation;
+    limb.position.y=-length/2;//this is currently not rotating around the shoudler 
+    limbframe.rotation.z= angle*side;
+    limbframe.add(limb);
+    shoulder.add(limbframe);
+    return shoulder;
+}
+
+function createHand(params){
+    var radius = params.handRadius;
+    var handGeometry = new THREE.SphereGeometry(radius,10,10);
+    var handMesh=new THREE.Mesh(handGeometry,pinkMaterial);
+    return handMesh;
+}
+
+function addHand(shoulder,params,side){
+    var handframe = new THREE.Object3D();
+    var hand = createHand(params);
+    var length = params.limbHeight;
+    var angle = params.limbRotation;
+    hand.position.y = -length;
+    handframe.rotation.z = side*angle;
+    handframe.add(hand);
+    shoulder.add(handframe);
+    return shoulder;
+}
+
+function createShoulder(params){
+    var radius = params.shoulderRadius;
+    var shoulderGeometry = new THREE.SphereGeometry(radius,10,10);
+    var shoulderMesh=new THREE.Mesh(shoulderGeometry,pinkMaterial);
+    return shoulderMesh;
+}
+
+function addShoulder(body,params,side){
+    var shoulderframe = new THREE.Object3D();
+    var shoulder = createShoulder(params);
+    var sw = params.shoulderWidth;
+    var sh = params.shoulderHeight;
+    shoulder.position.set(side*sw,sh,0)
+    addLimb(shoulder,params,side);
+    addHand(shoulder,params,side);
+    shoulderframe.add(shoulder);
+    body.add(shoulder);
+    return body
+}
+
+function createBody(params){
+    var body = new THREE.Object3D();
+    var radius = params.bodyRadius;
+    var bodyGeom = new THREE.ConeGeometry(radius,10,20);
+    var bodyMesh = new THREE.Mesh(bodyGeom, bodyMaterial);
+    var scale = params.bodyScaleY;
+    bodyMesh.scale.y = scale;
+    body.add(bodyMesh);
+    addShoulder(body,params,-1);
+    addShoulder(body,params,1);
+    addRightLeg(body,params,-1);
+    addRightFoot(body,params,-1);
+    return body
+}
+
+function createFoot(params){
+    var radius = params.footRadius;
+    var footGeom = new THREE.SphereGeometry(radius,20,20,0,2*Math.PI,0,Math.PI/2);
+    var footMesh = new THREE.Mesh(footGeom,blackMaterial);
+    return footMesh
+}
+
+function addFoot(bottom,params,side){
+    var width = params.hipWidth;
+    var footframe = new THREE.Object3D();
+    var foot = createFoot(params);
+    foot.position.x = width/2*side;
+    bottom.add(foot);
+    return bottom
+}
+
+function addRightFoot(body,params,side){
+    var width = params.hipWidth;
+    var radius = params.bodyRadius;
+    var height = params.legHeight;
+    var footframe = new THREE.Object3D();
+    var foot = createFoot(params);
+    foot.position.y=-radius-height;
+    foot.position.x = width/2*side;
+    footframe.rotation.x = Math.PI/4;
+    footframe.add(foot);
+    body.add(footframe);
+    return body
+}
+
+function createLeg(params){
+    var radius = params.legRadius;
+    var height = params.legHeight;
+    var legGeom = new THREE.CylinderGeometry(radius,radius,height,32);
+    var legMesh = new THREE.Mesh(legGeom,pinkMaterial);
+    return legMesh
+}
+
+function addLeg(bottom,params,side){
+    var width = params.hipWidth;
+    var height = params.legHeight;
+    var legframe = new THREE.Object3D();
+    var leg = createLeg(params);
+    leg.position.x = width/2*side;
+    leg.position.y = height/2;
+    bottom.add(leg);
+    return bottom
+}
+
+function addRightLeg(body,params,side){
+    var width = params.hipWidth;
+    var radius = params.bodyRadius;
+    var height = params.legHeight;
+    var legframe = new THREE.Object3D();
+    var leg = createLeg(params);
+    legframe.add(leg);
+    leg.position.y=-radius-height/2;
+    leg.position.x = width/2*side;
+    legframe.rotation.x=Math.PI/4;
+    body.add(legframe);
+    return body
+}
+
+
+function createBottom(params){
+    var bottom = new THREE.Object3D();
+    var radius = params.dotRadius;
+    var bottomGeom = new THREE.SphereGeometry(radius,20,20);
+    var bottomMesh = new THREE.Mesh(bottomGeom,yellowMaterial);
+    bottom.add(bottomMesh);
+    addFoot(bottom,params,1);
+    addLeg(bottom,params,1);
+    
+    return bottom
+}
+
+
+//this section needs revision
+function createClown(params) {
+    // creates and returns a Clown object
+    var clown = new THREE.Object3D();
+    var body = createBody(params);
+    var head = createHead(params);
+    var bottom = createBottom(params);
+    clown.add(body);
+    clown.add(head);
+    clown.add(bottom);
+
+    var body_height = params.legHeight + (params.bodyScaleY * params.bodyRadius)  -1;
+    var head_height = params.legHeight + (params.bodyScaleY * params.bodyRadius) * 2 + params.headRadius-1 ;
+
+    body.position.y=body_height;
+    head.position.y=head_height;
+
+    clown.scale.set(0.5,0.5,0.5);
+    return clown;
+}
+
+// ------------ set up for the stage 
+
+var materialArray = [];
+
+// colors for [right wall, left wall, ceiling, floor, front wall, back wall]
+var faceColors = [0xbf82b7, 0xbf82b7, 0x000000, 0x80623b, 0xbf82b7, 0xbf82b7];
+for (var i = 0; i < 6; i++) {
+    materialArray.push( new THREE.MeshPhongMaterial
+                           ( {color: faceColors[i],
+                              specular: THREE.ColorKeywords.gray,
+                              shininess: 10,
+                              flatShading: THREE.FlatShading,
+                              side:THREE.BackSide
+                             } ));
+}
+
+function createStage(){
+    var cube=new THREE.Object3D();
+
+    var stageMaterial = new THREE.MeshPhongMaterial( {color:0x80623b ,
+                              specular: THREE.ColorKeywords.gray,
+                              shininess: 10,
+                              flatShading: THREE.FlatShading,
+                              side:THREE.DoubleSide
+                             } );
+    var stageMesh = new THREE.Mesh(new THREE.BoxGeometry(60,10,40),stageMaterial);
+    var stageSceneMesh = new THREE.Mesh(new THREE.BoxGeometry(60,60,40),materialArray);
+    stageMesh.position.y=-5;
+    stageSceneMesh.position.y=30;
+
+    var bulbMaterial = new THREE.MeshPhongMaterial
+                           ( {color: 0xD3D3D3,
+                              specular: THREE.ColorKeywords.gray,
+                              shininess: 50,
+                              flatShading: THREE.FlatShading
+                             } );
+
+    var bulbMesh1 = new THREE.Mesh(new THREE.ConeGeometry(2,5,32,1),bulbMaterial);
+    bulbMesh1.position.set(-20,57.5,0);
+    scene.add(bulbMesh1);
+
+    var bulbMesh2 = new THREE.Mesh(new THREE.ConeGeometry(2,5,32,1),bulbMaterial);
+    bulbMesh2.position.set(0,57.5,0);
+    scene.add(bulbMesh2);
+
+    var bulbMesh3 = new THREE.Mesh(new THREE.ConeGeometry(2,5,32,1),bulbMaterial);
+    bulbMesh3.position.set(20,57.5,0);
+    scene.add(bulbMesh3);
+
+    cube.add(stageMesh);
+    cube.add(stageSceneMesh);
+    return cube;
+}
+
+// ---------------------------------------------------
+
+// construct a renderer for the scene
+var renderer = new THREE.WebGLRenderer();
+
+// create the Scene object
+var scene = new THREE.Scene();
+
+var clown1=createClown(params);
+scene.add(clown1);
+
+var clown2=createClown(params);
+clown2.position.x=-20;
+clown2.rotation.y=-Math.PI/4;
+scene.add(clown2);
+
+var clown3=createClown(params);
+clown3.position.x=20;
+clown3.rotation.y=Math.PI/4;
+scene.add(clown3);
+
+var stage = createStage()
+scene.add(stage);
+
+//-----------------lighting elements-------------------
+var ambientLight, directionalLight,spotLight1,spotLight2,spotLight3;
+
+function addAmbientLight(){
+    ambientLight = new THREE.AmbientLight ( new THREE.Color('gray'), 1 );
+    scene.add(ambientLight);
+}
+
+function addDirectionalLight(){
+    directLight = new THREE.DirectionalLight ( new THREE.Color('gray'), 1.3);
+    directLight.position.set(0,30,-30);           
+    directLight.target.position.set(0,30,30);   
+    scene.add(directLight);
+    scene.add(directLight.target);
+}
+
+function addSpotLight(){
+    spotLight1 = new THREE.SpotLight 
+                     ( new THREE.Color('gray'),      // rgb color of the source, default white
+                       3,  // multiplication factor, default 1
+                       0,   // distance where light ends, default 0
+                       Math.atan(5/10),      // width of beam in radians, default Math.PI/2
+                       0,   // % spotlight cone attenuated (0-1), default 0
+                       1       // amount light decays with distance, default 1
+                      );
+    spotLight1.position.set(-20,60,0);
+    spotLight1.target.position.set(-20,0,0);//(-40,-50,-40);
+    scene.add(spotLight1);
+    scene.add(spotLight1.target);
+
+    spotLight2 = new THREE.SpotLight 
+                     ( new THREE.Color('white'),      // rgb color of the source, default white
+                       1,  // multiplication factor, default 1
+                       0,   // distance where light ends, default 0
+                       Math.atan(5/10),      // width of beam in radians, default Math.PI/2
+                       0,   // % spotlight cone attenuated (0-1), default 0
+                       1       // amount light decays with distance, default 1
+                      );
+    spotLight2.position.set(0,60,0);
+    spotLight2.target.position.set(0,0,0);
+    scene.add(spotLight2);
+    scene.add(spotLight2.target);
+
+    spotLight3 = new THREE.SpotLight 
+                     ( new THREE.Color('white'),      // rgb color of the source, default white
+                       1,  // multiplication factor, default 1
+                       0,   // distance where light ends, default 0
+                       Math.atan(5/10),      // width of beam in radians, default Math.PI/2
+                       0,   // % spotlight cone attenuated (0-1), default 0
+                       1       // amount light decays with distance, default 1
+                      );
+    spotLight3.position.set(20,60,0);
+    spotLight3.target.position.set(20,0,0);
+    scene.add(spotLight3);
+    scene.add(spotLight3.target);
+}
+
+addAmbientLight();
+addDirectionalLight();
+addSpotLight();
+//-------------------------------------------------------
+TW.mainInit(renderer,scene);
+
+TW.cameraSetup(renderer,
+               scene,
+               {minx: -5, maxx: 5,
+                miny: -10, maxy: 30,
+                minz: -5, maxz: 5});
+
+TW.viewFromAboveFrontSide();
+
+</script>
+<p>This is a creative scene for displaying a dance performance 
+    by three dancers. We are trying to showcase our skills with:
+    <ul>
+        <li>
+            <b>modeling:</b> We used hierarchy-structured modeling when creating 
+            our three dancers. Currently, the dancers needs adjustments 
+            in colors and proper adjustmenst in postures. 
+        </li>
+        <li>
+            <b>material, lighting, and shading: </b> We used phong materials
+            for proper interactions with the lighting that we created. We added 
+            ambient light and directional light from the front of the stage to the scene. 
+            We also created three spotlights from the top of the stage that targeted 
+            on each of the dancers. 
+        </li>
+        <li>
+            <b>textures and texture-mapping:</b> We are planning to add textures 
+            to the back of the stage as part of the scenic design for the performance. 
+            This part is yet to be implemented. 
+        </li>
+        <li>
+            <b>user interaction:</b> We are planning to add mouse interaction 
+            with spotlight so that when users click on the light the light will be on 
+            that shines on the dancers. Potentially, we are going to add mouse 
+            interaction on the dancer so that when clicked, the dancers can each rotate accordingly. 
+        </li>
+    </ul>
+</p>
+</body>
+</html>
